@@ -1,4 +1,5 @@
 import { cookies } from "next/headers"
+import { createClient } from "@/lib/supabase/server"
 import { IS_DEMO, demoClients, demoPosts, demoMetrics } from "@/lib/demo-data"
 import { Header } from "@/components/layout/header"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -94,7 +95,7 @@ export default async function DashboardPage() {
       clientsNeedingAttention: demoClients.filter(c => c.health_score < 50),
       recentPosts: demoPosts.slice(0, 5).map(p => ({
         ...p,
-        clients: { name: demoClients.find(c => c.id === p.client_id)?.name || "", id: p.client_id },
+        clients: { name: demoClients.find(c => c.id === p.client_id)?.name || "", id: p.client_id } as unknown as import("@/types").Client,
       })),
       recentClients: demoClients.slice(0, 5),
       pendingApprovals: demoPosts.filter(p => p.status === "pending_approval").length,

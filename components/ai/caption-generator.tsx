@@ -68,7 +68,7 @@ export function CaptionGenerator({
       <div className="space-y-4">
         <div className="space-y-2">
           <Label>Platform</Label>
-          <Select value={platform} onValueChange={setPlatform}>
+          <Select value={platform} onValueChange={(v) => v && setPlatform(v)}>
             <SelectTrigger className="border-border/60">
               <SelectValue />
             </SelectTrigger>

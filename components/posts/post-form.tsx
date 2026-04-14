@@ -63,7 +63,7 @@ export function PostForm({ clientId, onSuccess }: PostFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label>Platform *</Label>
-        <Select value={formData.platform} onValueChange={v => handleChange("platform", v)}>
+        <Select value={formData.platform} onValueChange={v => v && handleChange("platform", v)}>
           <SelectTrigger className="border-border/60">
             <SelectValue />
           </SelectTrigger>
@@ -112,7 +112,7 @@ export function PostForm({ clientId, onSuccess }: PostFormProps) {
 
       <div className="space-y-2">
         <Label>Status</Label>
-        <Select value={formData.status} onValueChange={v => handleChange("status", v)}>
+        <Select value={formData.status} onValueChange={v => v && handleChange("status", v)}>
           <SelectTrigger className="border-border/60">
             <SelectValue />
           </SelectTrigger>

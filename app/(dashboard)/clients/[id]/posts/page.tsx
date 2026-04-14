@@ -97,11 +97,9 @@ export default function PostsPage({ params }: { params: Promise<{ id: string }> 
           </div>
           <div className="flex items-center gap-2">
             <Dialog open={captionOpen} onOpenChange={setCaptionOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" variant="outline" className="border-border/60">
-                  <Brain className="w-3.5 h-3.5 mr-1.5" />
-                  AI Captions
-                </Button>
+              <DialogTrigger render={<Button size="sm" variant="outline" className="border-border/60" />}>
+                <Brain className="w-3.5 h-3.5 mr-1.5" />
+                AI Captions
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
@@ -115,11 +113,9 @@ export default function PostsPage({ params }: { params: Promise<{ id: string }> 
               </DialogContent>
             </Dialog>
             <Dialog open={postFormOpen} onOpenChange={setPostFormOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="bg-violet-600 hover:bg-violet-700 text-white border-0">
-                  <Plus className="w-3.5 h-3.5 mr-1.5" />
-                  New Post
-                </Button>
+              <DialogTrigger render={<Button size="sm" className="bg-violet-600 hover:bg-violet-700 text-white border-0" />}>
+                <Plus className="w-3.5 h-3.5 mr-1.5" />
+                New Post
               </DialogTrigger>
               <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
@@ -137,7 +133,7 @@ export default function PostsPage({ params }: { params: Promise<{ id: string }> 
             <Filter className="w-3.5 h-3.5 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">Filter:</span>
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={(v) => v && setStatusFilter(v)}>
             <SelectTrigger className="w-36 h-8 border-border/60 text-xs">
               <SelectValue />
             </SelectTrigger>
@@ -151,7 +147,7 @@ export default function PostsPage({ params }: { params: Promise<{ id: string }> 
               <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={platformFilter} onValueChange={setPlatformFilter}>
+          <Select value={platformFilter} onValueChange={(v) => v && setPlatformFilter(v)}>
             <SelectTrigger className="w-36 h-8 border-border/60 text-xs">
               <SelectValue />
             </SelectTrigger>

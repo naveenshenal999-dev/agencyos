@@ -222,7 +222,7 @@ export default function LeadsPage() {
               className="pl-9 bg-card/50 border-border/60"
             />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={(v) => v && setStatusFilter(v)}>
             <SelectTrigger className="w-[140px] bg-card/50 border-border/60">
               <SelectValue />
             </SelectTrigger>
@@ -415,7 +415,7 @@ export default function LeadsPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Source</Label>
-                <Select value={form.source} onValueChange={v => setForm(f => ({ ...f, source: v }))}>
+                <Select value={form.source} onValueChange={v => v && setForm(f => ({ ...f, source: v }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

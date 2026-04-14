@@ -47,10 +47,11 @@ export default async function AnalyticsPage({ params }: { params: Promise<{ id: 
   const userProfile = { email: user?.email, full_name: userData?.full_name }
 
   // Prepare chart data - group by date
-  const chartData = metricsData.reduce((acc: Record<string, { date: string; instagram: number; facebook: number; linkedin: number; twitter: number }>, m) => {
+  type ChartRow = { date: string; instagram: number; facebook: number; linkedin: number; twitter: number }
+  const chartData = metricsData.reduce((acc: Record<string, ChartRow>, m) => {
     const date = new Date(m.recorded_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })
     if (!acc[date]) acc[date] = { date, instagram: 0, facebook: 0, linkedin: 0, twitter: 0 }
-    acc[date][m.platform as keyof typeof acc[typeof date]] = Number(m.engagement_rate)
+    ;(acc[date] as Record<string, number | string>)[m.platform] = Number(m.engagement_rate)
     return acc
   }, {})
 

@@ -92,7 +92,7 @@ export function ClientForm({ agencyId, client, onSuccess }: ClientFormProps) {
         </div>
         <div className="space-y-2">
           <Label htmlFor="industry">Industry</Label>
-          <Select value={formData.industry} onValueChange={v => handleChange("industry", v)}>
+          <Select value={formData.industry} onValueChange={v => v && handleChange("industry", v)}>
             <SelectTrigger className="border-border/60">
               <SelectValue placeholder="Select industry" />
             </SelectTrigger>
@@ -185,7 +185,7 @@ export function ClientForm({ agencyId, client, onSuccess }: ClientFormProps) {
       {isEdit && (
         <div className="space-y-2">
           <Label htmlFor="status">Status</Label>
-          <Select value={formData.status} onValueChange={v => handleChange("status", v)}>
+          <Select value={formData.status} onValueChange={v => v && handleChange("status", v)}>
             <SelectTrigger className="border-border/60">
               <SelectValue />
             </SelectTrigger>

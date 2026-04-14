@@ -50,7 +50,7 @@ export function ClientTable({ clients }: ClientTableProps) {
             className="pl-8 h-9 border-border/60 bg-muted/30"
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={(v) => v && setStatusFilter(v)}>
           <SelectTrigger className="w-full sm:w-36 h-9 border-border/60">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
@@ -62,7 +62,7 @@ export function ClientTable({ clients }: ClientTableProps) {
           </SelectContent>
         </Select>
         {industries.length > 0 && (
-          <Select value={industryFilter} onValueChange={setIndustryFilter}>
+          <Select value={industryFilter} onValueChange={(v) => v && setIndustryFilter(v)}>
             <SelectTrigger className="w-full sm:w-40 h-9 border-border/60">
               <SelectValue placeholder="Industry" />
             </SelectTrigger>

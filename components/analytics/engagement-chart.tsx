@@ -47,7 +47,7 @@ export function EngagementChart({ data }: EngagementChartProps) {
             borderRadius: "8px",
             fontSize: "12px",
           }}
-          formatter={(value: number) => [`${value}%`, ""]}
+          formatter={(value) => [`${value ?? 0}%`, ""]}
         />
         <Legend
           iconType="circle"

@@ -40,11 +40,9 @@ export default async function ClientsPage() {
             <p className="text-sm text-muted-foreground mt-0.5">{clients.length} client{clients.length !== 1 ? "s" : ""} managed</p>
           </div>
           <Dialog>
-            <DialogTrigger asChild>
-              <Button className="bg-violet-600 hover:bg-violet-700 text-white border-0" size="sm">
-                <Plus className="w-3.5 h-3.5 mr-1.5" />
-                Add Client
-              </Button>
+            <DialogTrigger render={<Button className="bg-violet-600 hover:bg-violet-700 text-white border-0" size="sm" />}>
+              <Plus className="w-3.5 h-3.5 mr-1.5" />
+              Add Client
             </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
@@ -65,11 +63,9 @@ export default async function ClientsPage() {
               Add your first client to start managing their social media, analytics, and content.
             </p>
             <Dialog>
-              <DialogTrigger asChild>
-                <Button className="bg-violet-600 hover:bg-violet-700 text-white border-0">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add First Client
-                </Button>
+              <DialogTrigger render={<Button className="bg-violet-600 hover:bg-violet-700 text-white border-0" />}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add First Client
               </DialogTrigger>
               <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
