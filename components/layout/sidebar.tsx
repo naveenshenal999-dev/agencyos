@@ -11,6 +11,7 @@ import {
   Calendar,
   ChevronRight,
   LayoutDashboard,
+  Mail,
   Paintbrush,
   Settings,
   Users,
@@ -49,6 +50,17 @@ const navItems = [
     href: "/analytics",
     icon: BarChart3,
     badge: "Pro",
+  },
+  {
+    title: "Leads",
+    href: "/leads",
+    icon: UserSquare,
+    badge: "New",
+  },
+  {
+    title: "Email",
+    href: "/email",
+    icon: Mail,
   },
   {
     title: "Team",

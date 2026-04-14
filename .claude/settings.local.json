@@ -14,7 +14,12 @@
       "Bash(git commit -m ':*)",
       "Bash(git push:*)",
       "Bash(npx vercel:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(gh api:*)",
+      "Bash(python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); [print\\(f['path']\\) for f in data.get\\('tree',[]\\) if f['type']=='blob']\")",
+      "Bash(python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); [print\\(f['name'], f['type']\\) for f in data]\")",
+      "Bash(python3 -c \"import sys,json; [print\\(f['path']\\) for f in json.load\\(sys.stdin\\)]\")",
+      "Bash(python3 -c \"import sys,json,base64; print\\(base64.b64decode\\(json.load\\(sys.stdin\\)['content']\\).decode\\(\\)\\)\")"
     ]
   }
 }

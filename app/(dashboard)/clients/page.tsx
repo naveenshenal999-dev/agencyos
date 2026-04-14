@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { Header } from "@/components/layout/header"
 import { ClientTable } from "@/components/clients/client-table"
-import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { ClientForm } from "@/components/clients/client-form"
 import { Plus, Users } from "lucide-react"
@@ -40,8 +39,8 @@ export default async function ClientsPage() {
             <p className="text-sm text-muted-foreground mt-0.5">{clients.length} client{clients.length !== 1 ? "s" : ""} managed</p>
           </div>
           <Dialog>
-            <DialogTrigger render={<Button className="bg-violet-600 hover:bg-violet-700 text-white border-0" size="sm" />}>
-              <Plus className="w-3.5 h-3.5 mr-1.5" />
+            <DialogTrigger className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium h-8 px-3 transition-colors cursor-pointer">
+              <Plus className="w-3.5 h-3.5" />
               Add Client
             </DialogTrigger>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
@@ -63,8 +62,8 @@ export default async function ClientsPage() {
               Add your first client to start managing their social media, analytics, and content.
             </p>
             <Dialog>
-              <DialogTrigger render={<Button className="bg-violet-600 hover:bg-violet-700 text-white border-0" />}>
-                <Plus className="w-4 h-4 mr-2" />
+              <DialogTrigger className="inline-flex items-center gap-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium h-9 px-4 transition-colors cursor-pointer">
+                <Plus className="w-4 h-4" />
                 Add First Client
               </DialogTrigger>
               <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">

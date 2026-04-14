@@ -97,8 +97,8 @@ export default function PostsPage({ params }: { params: Promise<{ id: string }> 
           </div>
           <div className="flex items-center gap-2">
             <Dialog open={captionOpen} onOpenChange={setCaptionOpen}>
-              <DialogTrigger render={<Button size="sm" variant="outline" className="border-border/60" />}>
-                <Brain className="w-3.5 h-3.5 mr-1.5" />
+              <DialogTrigger className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 text-sm font-medium h-8 px-3 hover:bg-accent transition-colors cursor-pointer">
+                <Brain className="w-3.5 h-3.5" />
                 AI Captions
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -113,8 +113,8 @@ export default function PostsPage({ params }: { params: Promise<{ id: string }> 
               </DialogContent>
             </Dialog>
             <Dialog open={postFormOpen} onOpenChange={setPostFormOpen}>
-              <DialogTrigger render={<Button size="sm" className="bg-violet-600 hover:bg-violet-700 text-white border-0" />}>
-                <Plus className="w-3.5 h-3.5 mr-1.5" />
+              <DialogTrigger className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium h-8 px-3 transition-colors cursor-pointer">
+                <Plus className="w-3.5 h-3.5" />
                 New Post
               </DialogTrigger>
               <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
