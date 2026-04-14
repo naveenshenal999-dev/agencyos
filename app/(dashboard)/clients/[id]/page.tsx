@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { generateClientColor, getHealthScoreColor, formatDate } from "@/lib/utils"
 import { InstagramIcon, FacebookIcon, LinkedinIcon, TwitterIcon } from "@/components/ui/platform-icons"
 import {
@@ -157,10 +156,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
           ))}
         </div>
 
-        <Tabs defaultValue="overview">
-          <TabsList className="hidden">
-
-          <TabsContent value="overview" className="space-y-6 mt-4">
+        <div className="space-y-6 mt-4">
             {/* Metrics Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
@@ -266,8 +262,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
-        </Tabs>
+        </div>
       </div>
     </div>
   )
