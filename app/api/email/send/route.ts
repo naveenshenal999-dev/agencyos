@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { resend, FROM_EMAIL, FROM_NAME, DAILY_SEND_LIMIT } from "@/lib/resend"
+import { getResendClient, FROM_EMAIL, FROM_NAME, DAILY_SEND_LIMIT } from "@/lib/resend"
 import { render } from "@react-email/render"
 import { OutreachEmail } from "@/emails/outreach-template"
 
@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
       trackingPixelUrl,
     }))
 
+    const resend = getResendClient()
     const { data, error } = await resend.emails.send({
       from: `${agencyName || FROM_NAME} <${FROM_EMAIL}>`,
       to: [toEmail],
