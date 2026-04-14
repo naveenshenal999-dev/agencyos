@@ -1,6 +1,6 @@
-import { createClient } from "@/lib/supabase/server"
 import { Header } from "@/components/layout/header"
 import { notFound } from "next/navigation"
+import { IS_DEMO, demoClients, demoPosts, demoMetrics } from "@/lib/demo-data"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,38 +13,41 @@ import { formatNumber } from "@/lib/utils"
 
 export default async function AnalyticsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  const { data: userData } = await supabase.from("users").select("*").eq("id", user!.id).single()
 
-  const { data: client } = await supabase.from("clients").select("*").eq("id", id).single()
+  let client: Awaited<ReturnType<typeof demoClients.find>> | null = null
+  let metricsData: typeof demoMetrics = []
+  let topPosts: typeof demoPosts = []
+  let userProfile: { email?: string; full_name?: string } = {}
+
+  if (IS_DEMO) {
+    client = demoClients.find(c => c.id === id) || null
+    if (!client) notFound()
+    metricsData = demoMetrics.filter(m => m.client_id === id).sort((a,b) => a.recorded_at.localeCompare(b.recorded_at))
+    topPosts = demoPosts.filter(p => p.client_id === id && p.status === "published").sort((a,b) => b.reach - a.reach).slice(0,5)
+    userProfile = { email: "demo@agencyos.com" }
+  } else {
+    const { createClient } = await import("@/lib/supabase/server")
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: userData } = await supabase.from("users").select("*").eq("id", user!.id).single()
+    const { data: clientData } = await supabase.from("clients").select("*").eq("id", id).single()
+    if (!clientData) notFound()
+    client = clientData
+    const { data: metricsRes } = await supabase.from("metrics").select("*").eq("client_id", id).order("recorded_at", { ascending: true })
+    const { data: postsRes } = await supabase.from("posts").select("*").eq("client_id", id).eq("status", "published").order("reach", { ascending: false }).limit(5)
+    metricsData = metricsRes || []
+    topPosts = postsRes || []
+    userProfile = { email: user?.email, full_name: userData?.full_name }
+  }
   if (!client) notFound()
 
-  const { data: metrics } = await supabase
-    .from("metrics")
-    .select("*")
-    .eq("client_id", id)
-    .order("recorded_at", { ascending: true })
-
-  const { data: topPosts } = await supabase
-    .from("posts")
-    .select("*")
-    .eq("client_id", id)
-    .eq("status", "published")
-    .order("reach", { ascending: false })
-    .limit(5)
-
-  const metricsData = metrics || []
   const latestMetrics = metricsData.slice(-4)
-
   const totalFollowers = latestMetrics.reduce((s, m) => s + m.followers, 0)
   const avgEngagement = latestMetrics.length > 0
     ? (latestMetrics.reduce((s, m) => s + Number(m.engagement_rate), 0) / latestMetrics.length).toFixed(1)
     : "0.0"
   const totalReach = latestMetrics.reduce((s, m) => s + m.reach, 0)
   const totalImpressions = latestMetrics.reduce((s, m) => s + m.impressions, 0)
-
-  const userProfile = { email: user?.email, full_name: userData?.full_name }
 
   // Prepare chart data - group by date
   type ChartRow = { date: string; instagram: number; facebook: number; linkedin: number; twitter: number }

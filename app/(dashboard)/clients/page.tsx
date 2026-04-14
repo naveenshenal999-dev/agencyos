@@ -1,33 +1,34 @@
-import { createClient } from "@/lib/supabase/server"
 import { Header } from "@/components/layout/header"
 import { ClientTable } from "@/components/clients/client-table"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { ClientForm } from "@/components/clients/client-form"
 import { Plus, Users } from "lucide-react"
+import { IS_DEMO, demoClients } from "@/lib/demo-data"
 
 export default async function ClientsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  let clients: typeof demoClients = []
+  let agencyId = ""
+  let userProfile: { email?: string; full_name?: string } = {}
 
-  const { data: userData } = await supabase
-    .from("users")
-    .select("*, agencies(*)")
-    .eq("id", user!.id)
-    .single()
-
-  const agencyId = userData?.agency_id
-
-  let clients = []
-  if (agencyId) {
-    const { data } = await supabase
-      .from("clients")
-      .select("*")
-      .eq("agency_id", agencyId)
-      .order("created_at", { ascending: false })
-    clients = data || []
+  if (IS_DEMO) {
+    clients = demoClients
+    agencyId = "demo-agency-1"
+    userProfile = { email: "demo@agencyos.com" }
+  } else {
+    const { createClient } = await import("@/lib/supabase/server")
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: userData } = await supabase
+      .from("users").select("*, agencies(*)").eq("id", user!.id).single()
+    agencyId = userData?.agency_id || ""
+    userProfile = { email: user?.email, full_name: userData?.full_name }
+    if (agencyId) {
+      const { data } = await supabase
+        .from("clients").select("*").eq("agency_id", agencyId)
+        .order("created_at", { ascending: false })
+      clients = data || []
+    }
   }
-
-  const userProfile = { email: user?.email, full_name: userData?.full_name }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -47,7 +48,7 @@ export default async function ClientsPage() {
               <DialogHeader>
                 <DialogTitle>Add New Client</DialogTitle>
               </DialogHeader>
-              <ClientForm agencyId={agencyId || ""} />
+              <ClientForm agencyId={agencyId} />
             </DialogContent>
           </Dialog>
         </div>
@@ -70,7 +71,7 @@ export default async function ClientsPage() {
                 <DialogHeader>
                   <DialogTitle>Add New Client</DialogTitle>
                 </DialogHeader>
-                <ClientForm agencyId={agencyId || ""} />
+                <ClientForm agencyId={agencyId} />
               </DialogContent>
             </Dialog>
           </div>

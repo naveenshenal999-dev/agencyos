@@ -1,6 +1,6 @@
-import { createClient } from "@/lib/supabase/server"
 import { Header } from "@/components/layout/header"
 import { notFound } from "next/navigation"
+import { IS_DEMO, demoClients, demoPosts, demoMetrics } from "@/lib/demo-data"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -17,22 +17,35 @@ import type { Client, Post, Metrics } from "@/types"
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  const { data: userData } = await supabase.from("users").select("*").eq("id", user!.id).single()
 
-  const { data: client } = await supabase.from("clients").select("*").eq("id", id).single()
+  let client: Client | null = null
+  let posts: Post[] = []
+  let metrics: Metrics[] = []
+  let userProfile: { email?: string; full_name?: string } = {}
+
+  if (IS_DEMO) {
+    client = demoClients.find(c => c.id === id) || null
+    if (!client) notFound()
+    posts = demoPosts.filter(p => p.client_id === id)
+    metrics = demoMetrics.filter(m => m.client_id === id)
+    userProfile = { email: "demo@agencyos.com" }
+  } else {
+    const { createClient } = await import("@/lib/supabase/server")
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: userData } = await supabase.from("users").select("*").eq("id", user!.id).single()
+    const { data: clientData } = await supabase.from("clients").select("*").eq("id", id).single()
+    if (!clientData) notFound()
+    client = clientData
+    const [postsRes, metricsRes] = await Promise.all([
+      supabase.from("posts").select("*").eq("client_id", id).order("created_at", { ascending: false }).limit(6),
+      supabase.from("metrics").select("*").eq("client_id", id).order("recorded_at", { ascending: false }).limit(4),
+    ])
+    posts = postsRes.data || []
+    metrics = metricsRes.data || []
+    userProfile = { email: user?.email, full_name: userData?.full_name }
+  }
   if (!client) notFound()
-
-  const [postsRes, metricsRes] = await Promise.all([
-    supabase.from("posts").select("*").eq("client_id", id).order("created_at", { ascending: false }).limit(6),
-    supabase.from("metrics").select("*").eq("client_id", id).order("recorded_at", { ascending: false }).limit(4),
-  ])
-
-  const posts: Post[] = postsRes.data || []
-  const metrics: Metrics[] = metricsRes.data || []
-
-  const userProfile = { email: user?.email, full_name: userData?.full_name }
   const clientColor = generateClientColor(client.name)
 
   const statusColors: Record<string, string> = {

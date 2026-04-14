@@ -7,8 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
+import { IS_DEMO, demoClients, demoPosts } from "@/lib/demo-data"
 import { PostForm } from "@/components/posts/post-form"
 import { CaptionGenerator } from "@/components/ai/caption-generator"
 import {
@@ -37,14 +37,21 @@ export default function PostsPage({ params }: { params: Promise<{ id: string }> 
   const [platformFilter, setPlatformFilter] = useState("all")
   const [postFormOpen, setPostFormOpen] = useState(false)
   const [captionOpen, setCaptionOpen] = useState(false)
-  const supabase = createClient()
-
   useEffect(() => {
     loadData()
   }, [clientId])
 
   async function loadData() {
     setIsLoading(true)
+    if (IS_DEMO) {
+      const demoClient = demoClients.find(c => c.id === clientId)
+      setClient(demoClient ? { name: demoClient.name, brand_voice: demoClient.brand_voice, target_audience: demoClient.target_audience } : null)
+      setPosts(demoPosts.filter(p => p.client_id === clientId))
+      setIsLoading(false)
+      return
+    }
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
     const [postsRes, clientRes] = await Promise.all([
       supabase.from("posts").select("*").eq("client_id", clientId).order("created_at", { ascending: false }),
       supabase.from("clients").select("name, brand_voice, target_audience").eq("id", clientId).single(),
@@ -55,23 +62,23 @@ export default function PostsPage({ params }: { params: Promise<{ id: string }> 
   }
 
   async function handleApprove(postId: string) {
-    const { error } = await supabase
-      .from("posts")
-      .update({ status: "approved" })
-      .eq("id", postId)
+    if (IS_DEMO) { setPosts(prev => prev.map(p => p.id === postId ? { ...p, status: "approved" as const } : p)); toast.success("Post approved"); return }
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+    const { error } = await supabase.from("posts").update({ status: "approved" }).eq("id", postId)
     if (error) { toast.error("Failed to approve post"); return }
     toast.success("Post approved")
-    setPosts(prev => prev.map(p => p.id === postId ? { ...p, status: "approved" } : p))
+    setPosts(prev => prev.map(p => p.id === postId ? { ...p, status: "approved" as const } : p))
   }
 
   async function handleReject(postId: string) {
-    const { error } = await supabase
-      .from("posts")
-      .update({ status: "rejected" })
-      .eq("id", postId)
+    if (IS_DEMO) { setPosts(prev => prev.map(p => p.id === postId ? { ...p, status: "rejected" as const } : p)); toast.success("Post rejected"); return }
+    const { createClient } = await import("@/lib/supabase/client")
+    const supabase = createClient()
+    const { error } = await supabase.from("posts").update({ status: "rejected" }).eq("id", postId)
     if (error) { toast.error("Failed to reject post"); return }
     toast.success("Post rejected")
-    setPosts(prev => prev.map(p => p.id === postId ? { ...p, status: "rejected" } : p))
+    setPosts(prev => prev.map(p => p.id === postId ? { ...p, status: "rejected" as const } : p))
   }
 
   const filtered = posts.filter(p => {
