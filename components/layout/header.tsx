@@ -14,15 +14,16 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { useState } from "react"
+import { useMobileMenu } from "./mobile-menu-context"
 
 interface HeaderProps {
   title?: string
   user?: { email?: string; full_name?: string }
-  onMenuClick?: () => void
 }
 
-export function Header({ title = "Dashboard", user, onMenuClick }: HeaderProps) {
+export function Header({ title = "Dashboard", user }: HeaderProps) {
   const [hasNotifications] = useState(true)
+  const { open: openMenu } = useMobileMenu()
 
   const initials = user?.full_name
     ? user.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
@@ -34,7 +35,7 @@ export function Header({ title = "Dashboard", user, onMenuClick }: HeaderProps) 
         variant="ghost"
         size="icon"
         className="lg:hidden h-8 w-8"
-        onClick={onMenuClick}
+        onClick={openMenu}
       >
         <Menu className="w-4 h-4" />
       </Button>

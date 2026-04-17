@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
 import { Sidebar } from "./sidebar"
 import { MobileNav } from "./mobile-nav"
+import { MobileMenuProvider, useMobileMenu } from "./mobile-menu-context"
 
 interface DashboardShellProps {
   children: React.ReactNode
@@ -11,8 +11,8 @@ interface DashboardShellProps {
   plan?: string
 }
 
-export function DashboardShell({ children, user, agencyName, plan }: DashboardShellProps) {
-  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+function ShellInner({ children, user, agencyName, plan }: DashboardShellProps) {
+  const { isOpen, close } = useMobileMenu()
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -21,19 +21,23 @@ export function DashboardShell({ children, user, agencyName, plan }: DashboardSh
         <Sidebar user={user} agencyName={agencyName} plan={plan} />
       </div>
 
-      {/* Mobile nav */}
-      <MobileNav
-        open={mobileNavOpen}
-        onClose={() => setMobileNavOpen(false)}
-        user={user}
-        agencyName={agencyName}
-        plan={plan}
-      />
+      {/* Mobile nav drawer */}
+      <MobileNav open={isOpen} onClose={close} user={user} agencyName={agencyName} plan={plan} />
 
       {/* Main content */}
-      <main className="flex-1 lg:ml-64 min-h-screen">
+      <main className="flex-1 lg:ml-64 min-h-screen w-full overflow-x-hidden">
         {children}
       </main>
     </div>
+  )
+}
+
+export function DashboardShell({ children, user, agencyName, plan }: DashboardShellProps) {
+  return (
+    <MobileMenuProvider>
+      <ShellInner user={user} agencyName={agencyName} plan={plan}>
+        {children}
+      </ShellInner>
+    </MobileMenuProvider>
   )
 }
