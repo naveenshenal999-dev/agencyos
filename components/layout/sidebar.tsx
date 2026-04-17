@@ -52,6 +52,12 @@ const navItems = [
     badge: "Pro",
   },
   {
+    title: "AI Automation",
+    href: "/automation",
+    icon: Zap,
+    badge: "AI",
+  },
+  {
     title: "Leads",
     href: "/leads",
     icon: UserSquare,
