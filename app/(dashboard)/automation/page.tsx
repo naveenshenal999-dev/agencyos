@@ -22,8 +22,12 @@ interface AgentResult {
   description: string
   score: number
   issues: string[]
+  aiInsights: string[]
   subject: string
   body: string
+  aiModel?: string
+  subjectModel?: string
+  variantCount?: number
   status: string
 }
 
@@ -332,6 +336,11 @@ export default function AutomationPage() {
                               <TrendingDown className="w-2.5 h-2.5 mr-1" />
                               {result.score}/100
                             </Badge>
+                            {result.variantCount && result.variantCount > 1 && (
+                              <Badge className="text-xs bg-violet-500/10 text-violet-400 border-violet-500/20">
+                                A/B tested {result.variantCount} variants
+                              </Badge>
+                            )}
                             {result.status === "sent" && (
                               <Badge className="text-xs bg-green-500/10 text-green-400 border-green-500/20">
                                 <CheckCircle2 className="w-2.5 h-2.5 mr-1" />
@@ -372,6 +381,32 @@ export default function AutomationPage() {
                           </span>
                         ))}
                       </div>
+
+                      {/* AI Content Insights */}
+                      {result.aiInsights && result.aiInsights.length > 0 && (
+                        <div className="mb-2">
+                          <div className="text-[10px] text-indigo-400 font-medium mb-1">🧠 AI Content Insights</div>
+                          <div className="flex flex-wrap gap-1">
+                            {result.aiInsights.slice(0, 3).map((insight, i) => (
+                              <span key={i} className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                                {insight.length > 50 ? insight.slice(0, 50) + "…" : insight}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* AI model attribution */}
+                      {result.aiModel && (
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-[10px] text-muted-foreground/60">✦ Written by {result.aiModel}</span>
+                          {result.variantCount && result.variantCount > 1 && (
+                            <Badge className="text-[10px] h-4 px-1.5 bg-violet-500/10 text-violet-400 border-violet-500/20">
+                              A/B tested
+                            </Badge>
+                          )}
+                        </div>
+                      )}
 
                       {/* Email preview */}
                       {expandedResult === result.company && (

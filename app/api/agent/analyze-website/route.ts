@@ -4,6 +4,7 @@ export interface WebsiteAnalysis {
   url: string
   score: number
   issues: string[]
+  aiInsights: string[]
   metrics: {
     performance: number
     lcp: string
@@ -15,10 +16,12 @@ export interface WebsiteAnalysis {
     desktop: number
   }
   summary: string
+  aiModel?: string
 }
 
 // Uses Google PageSpeed Insights API — completely free, no key needed for low volume
 // With GOOGLE_API_KEY env var it unlocks 10,000 queries/day free
+// With GEMINI_API_KEY it adds deep content/SEO analysis on top
 export async function POST(request: NextRequest) {
   try {
     const { url } = await request.json()
@@ -67,21 +70,16 @@ export async function POST(request: NextRequest) {
     const ttfbMs = parseFloat(ttfb)
     if (ttfbMs > 600) issues.push(`Server is slow to respond — ${ttfb} (should be under 200ms)`)
 
-    // Check for missing SEO/mobile basics
     if (!audits["viewport"]?.score) issues.push("Not optimized for mobile devices — no viewport meta tag")
     if (!audits["meta-description"]?.score) issues.push("Missing meta description — hurts search engine ranking")
     if (!audits["image-alt"]?.score) issues.push("Images missing alt text — bad for SEO and accessibility")
 
-    // Check render blocking
     if (audits["render-blocking-resources"]?.score === 0) {
       issues.push("Render-blocking scripts slowing page load")
     }
-
-    // Check image optimization
     if (audits["uses-optimized-images"]?.score === 0) {
       issues.push("Images are not optimized — wasting bandwidth and slowing load time")
     }
-
     if (audits["uses-responsive-images"]?.score === 0) {
       issues.push("Images not properly sized for screen — loading oversized images")
     }
@@ -94,12 +92,65 @@ export async function POST(request: NextRequest) {
     else if (overallScore >= 50) summary = `Website has serious performance problems (${overallScore}/100) that are likely costing significant business.`
     else summary = `Website is critically slow (${overallScore}/100) — visitors are almost certainly leaving before the page loads.`
 
+    // ── Gemini deep content analysis (if key available) ──────────────────────
+    const aiInsights: string[] = []
+    let aiModel: string | undefined
+
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        // Grab the page HTML (5s timeout)
+        const pageRes = await Promise.race([
+          fetch(cleanUrl, { headers: { "User-Agent": "Mozilla/5.0 (compatible; AgencyBot/1.0)" } }),
+          new Promise<Response>((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000)),
+        ]) as Response
+
+        if (pageRes.ok) {
+          const html = await pageRes.text()
+          // Extract visible text, strip tags, limit size
+          const text = html
+            .replace(/<script[\s\S]*?<\/script>/gi, "")
+            .replace(/<style[\s\S]*?<\/style>/gi, "")
+            .replace(/<[^>]+>/g, " ")
+            .replace(/\s+/g, " ")
+            .slice(0, 3000)
+
+          const { generateWithGemini } = await import("@/lib/gemini")
+          const geminiPrompt = `Analyze this small business website for SEO, conversion, and trust issues.
+
+URL: ${cleanUrl}
+Page content (truncated): ${text}
+
+Find up to 5 specific, actionable problems. Focus on:
+- Missing or weak CTAs
+- Trust signals (reviews, certifications, phone number, address)
+- Content quality (vague, outdated, thin)
+- Social proof
+- Contact accessibility
+
+Reply ONLY as a JSON array of short issue strings (max 15 words each):
+["issue 1", "issue 2", ...]`
+
+          const geminiResponse = await generateWithGemini(geminiPrompt)
+          const match = geminiResponse.match(/\[[\s\S]*?\]/)
+          if (match) {
+            const parsed: string[] = JSON.parse(match[0])
+            aiInsights.push(...parsed.slice(0, 5))
+            aiModel = "Gemini 1.5 Flash"
+          }
+        }
+      } catch {
+        // Silently skip — don't fail the whole analysis if Gemini errors
+      }
+    }
+
     const analysis: WebsiteAnalysis = {
       url: cleanUrl,
       score: overallScore,
       issues,
+      aiInsights,
       metrics: { performance: overallScore, lcp, fid, cls, ttfb, speedIndex, mobile: mobileScore, desktop: desktopScore },
       summary,
+      aiModel,
     }
 
     return NextResponse.json({ analysis })

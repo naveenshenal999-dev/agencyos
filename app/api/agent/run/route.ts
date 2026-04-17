@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-// Full pipeline: search → analyze → generate email → add to leads queue
+// Full pipeline: search → analyze (PageSpeed + Gemini) → generate email (multi-AI A/B) → add to leads queue
 // Streams progress back as NDJSON so the UI can show live updates
 export async function POST(request: NextRequest) {
   const { niche, location, maxCompanies = 10, scoreThreshold = 75, senderName, agencyName, autoQueue = false } = await request.json()
@@ -60,6 +60,10 @@ export async function POST(request: NextRequest) {
 
           analyzed++
 
+          const deepNote = analysis.aiInsights?.length > 0
+            ? ` + ${analysis.aiInsights.length} AI content insights`
+            : ""
+
           // Step 3: Only email companies with poor scores
           if (analysis.score >= scoreThreshold) {
             send({ step: "analyze", status: "skip", message: `${company.name} scored ${analysis.score}/100 — too good, skipping` })
@@ -67,9 +71,13 @@ export async function POST(request: NextRequest) {
           }
 
           qualified++
-          send({ step: "email", status: "running", message: `Generating email for ${company.name} (score: ${analysis.score}/100)...` })
+          send({
+            step: "email",
+            status: "running",
+            message: `Generating email for ${company.name} (score: ${analysis.score}/100${deepNote})...`,
+          })
 
-          // Step 4: Generate personalized email
+          // Step 4: Generate personalized email (multi-AI A/B)
           const emailRes = await fetch(`${base}/api/agent/generate-email`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -83,8 +91,12 @@ export async function POST(request: NextRequest) {
             description: company.description,
             score: analysis.score,
             issues: analysis.issues,
+            aiInsights: analysis.aiInsights || [],
             subject: emailData.subject,
             body: emailData.body,
+            aiModel: emailData.aiModel,
+            subjectModel: emailData.subjectModel,
+            variantCount: emailData.variantCount || 1,
             status: "ready",
           }
           results.push(result)
@@ -100,12 +112,13 @@ export async function POST(request: NextRequest) {
                 company: company.name,
                 website: company.website,
                 source: "ai_agent",
-                notes: `Score: ${analysis.score}/100. Issues: ${analysis.issues.slice(0, 2).join(", ")}`,
+                notes: `Score: ${analysis.score}/100. Issues: ${[...analysis.issues, ...(analysis.aiInsights || [])].slice(0, 3).join(", ")}`,
               }),
             })
           }
 
-          send({ step: "email", status: "done", message: `Email ready for ${company.name}`, result })
+          const abNote = emailData.variantCount > 1 ? ` (A/B tested ${emailData.variantCount} variants)` : ""
+          send({ step: "email", status: "done", message: `Email ready for ${company.name}${abNote}`, result })
         } catch (err) {
           send({ step: "analyze", status: "skip", message: `Error with ${company.name}: ${String(err)}` })
           analyzed++

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { generateText } from "@/lib/groq"
 import type { WebsiteAnalysis } from "../analyze-website/route"
+import { generateAI, generateEmailVariants, pickBestEmail } from "@/lib/ai-router"
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,10 +13,12 @@ export async function POST(request: NextRequest) {
       niche?: string
     } = await request.json()
 
-    const issuesList = analysis.issues.slice(0, 3).join("\n- ")
+    const sender = senderName || "Alex"
+    const agency = agencyName || "a web & social media agency"
+    const issuesList = [...analysis.issues, ...analysis.aiInsights].slice(0, 4).join("\n- ")
     const score = analysis.score
 
-    const prompt = `You are ${senderName || "Alex"} from ${agencyName || "a social media and web agency"}.
+    const emailPrompt = `You are ${sender} from ${agency}.
 
 Write a short, professional, personalized cold email to the owner of "${company}" (website: ${website}).
 
@@ -30,25 +32,49 @@ The email should:
 - Lead naturally to a free audit or call offer
 - Sound human, not salesy
 - End with a clear but soft CTA
-- NO subject line in the body
-- Sign off with ${senderName || "Alex"} from ${agencyName || "the agency"}
+- Sign off with ${sender} from ${agency}
 
 Write only the email body, no subject line.`
 
-    const body = await generateText(prompt, "You are an expert at writing high-converting cold email outreach for digital agencies. Keep emails concise, specific, and human.")
+    const emailSystem = "You are an expert at writing high-converting cold email outreach for digital agencies. Keep emails concise, specific, and human."
 
-    // Generate subject line separately
+    // Try to generate A/B variants from multiple AIs simultaneously
+    let emailBody: string
+    let emailModel: string
+    let variantCount = 1
+
+    const variants = await generateEmailVariants(emailPrompt, emailSystem)
+
+    if (variants.length > 1) {
+      const { winner, reason } = await pickBestEmail(variants, { company, issues: analysis.issues })
+      emailBody = winner.text
+      emailModel = `${winner.model} (won A/B vs ${variants.length} variants — ${reason})`
+      variantCount = variants.length
+    } else if (variants.length === 1) {
+      emailBody = variants[0].text
+      emailModel = variants[0].model
+    } else {
+      // Absolute fallback
+      const result = await generateAI("email_body", emailPrompt, emailSystem)
+      emailBody = result.text
+      emailModel = result.model
+    }
+
+    // Subject line — use fastest AI
     const subjectPrompt = `Write ONE compelling email subject line for a cold outreach email to "${company}" about their website having a speed score of ${score}/100.
 Keep it under 60 characters. Make it curiosity-driven, not clickbait. No quotes. Just the subject line.`
 
-    const subject = await generateText(subjectPrompt)
+    const subjectResult = await generateAI("email_subject", subjectPrompt)
 
     return NextResponse.json({
-      subject: subject.trim().replace(/^["']|["']$/g, ""),
-      body: body.trim(),
+      subject: subjectResult.text.trim().replace(/^["']|["']$/g, ""),
+      body: emailBody.trim(),
       company,
       website,
       score,
+      aiModel: emailModel,
+      subjectModel: subjectResult.model,
+      variantCount,
     })
   } catch (error) {
     return NextResponse.json({ error: String(error) }, { status: 500 })
